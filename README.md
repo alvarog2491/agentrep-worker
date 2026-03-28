@@ -1,6 +1,6 @@
 # agentrep-worker — Customer Experience Agent on Amazon Bedrock AgentCore
 
-A conversational AI agent built for **customer experience** and **lead collection** use cases. It connects to the `agentrep-mcp` MCP server to access business automation tools, queries an **Amazon Bedrock Knowledge Base** for company-specific information, and uses **AgentCore Memory** for short-term conversation context within a session. Designed to run on **Amazon Bedrock AgentCore Runtime**.
+A conversational AI agent built for **customer experience** and **lead collection** use cases. It connects to the [`agentrep-mcp`](https://github.com/alvarog2491/agentrep-mcp) MCP server to access business automation tools, queries an **Amazon Bedrock Knowledge Base** for company-specific information, and uses **AgentCore Memory** for short-term conversation context within a session. Designed to run on **Amazon Bedrock AgentCore Runtime**.
 
 ## Contents
 
@@ -19,7 +19,7 @@ A conversational AI agent built for **customer experience** and **lead collectio
 
 ## Architecture
 
-The worker agent receives a customer prompt, retrieves session memory, connects to the `agentrep-mcp` AgentCore Runtime to discover and invoke MCP tools, queries the Bedrock Knowledge Base for company-specific information, and streams the response back to the caller.
+The worker agent receives a customer prompt, retrieves session memory, connects to the [`agentrep-mcp`](https://github.com/alvarog2491/agentrep-mcp) AgentCore Runtime to discover and invoke MCP tools, queries the Bedrock Knowledge Base for company-specific information, and streams the response back to the caller.
 
 ```
 Customer Request
@@ -38,9 +38,9 @@ AgentCore Runtime (worker_Agent)
 
 ## Tools
 
-### MCP tools (via `agentrep-mcp`)
+### MCP tools (via [`agentrep-mcp`](https://github.com/alvarog2491/agentrep-mcp))
 
-Tools are discovered dynamically at invocation time via `client.list_tools_sync()`. No hardcoded tool list — adding a tool to `agentrep-mcp` requires no changes here.
+Tools are discovered dynamically at invocation time via `client.list_tools_sync()`. No hardcoded tool list — adding a tool to [`agentrep-mcp`](https://github.com/alvarog2491/agentrep-mcp) requires no changes here.
 
 | Tool | Description |
 |---|---|
@@ -114,7 +114,7 @@ agentrep-worker/
 - AWS CLI configured (`aws configure`)
 - Docker (must be running — Terraform builds and pushes the image locally)
 - Access to Amazon Bedrock AgentCore in your AWS account
-- A deployed `agentrep-mcp` instance — its runtime URL is required as a Terraform variable
+- A deployed [`agentrep-mcp`](https://github.com/alvarog2491/agentrep-mcp) instance — its runtime URL is required as a Terraform variable
 
 ---
 
@@ -151,7 +151,7 @@ Terraform manages the full infrastructure: ECR repository, Docker image build an
 - [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.2
 - Docker (must be running — Terraform builds and pushes the image locally)
 - AWS CLI configured (`aws configure`)
-- Deployed `agentrep-mcp` stack (to get its runtime URL)
+- Deployed [`agentrep-mcp`](https://github.com/alvarog2491/agentrep-mcp) stack (to get its runtime URL)
 
 #### 1. Navigate to the terraform directory
 
@@ -174,7 +174,7 @@ knowledge_base_id     = ""   # optional — leave empty to disable the KB tool
 |---|---|
 | `app_name` | Name prefix for all created resources |
 | `agent_runtime_version` | Runtime version pinned to the **PROD** endpoint — bump manually to promote |
-| `mcp_runtime_url` | Invocation URL of the `agentrep-mcp` AgentCore Runtime |
+| `mcp_runtime_url` | Invocation URL of the [`agentrep-mcp`](https://github.com/alvarog2491/agentrep-mcp) AgentCore Runtime |
 | `knowledge_base_id` | Bedrock Knowledge Base ID (leave empty to disable) |
 
 #### 3. Initialize, plan, and deploy
@@ -245,7 +245,7 @@ Use the **Test Console** in the Bedrock AgentCore AWS console. Select `worker_Ag
 |---|---|
 | `AWS_REGION` | AWS region for Bedrock and AgentCore services (default: `us-east-1`) |
 | `BEDROCK_AGENTCORE_MEMORY_ID` | AgentCore Memory resource ID (injected by Terraform) |
-| `MCP_SERVER_URL` | Invocation URL of the `agentrep-mcp` AgentCore Runtime (injected by Terraform) |
+| `MCP_SERVER_URL` | Invocation URL of the [`agentrep-mcp`](https://github.com/alvarog2491/agentrep-mcp) AgentCore Runtime (injected by Terraform) |
 | `KNOWLEDGE_BASE_ID` | Bedrock Knowledge Base ID — enables `search_knowledge_base` tool (injected by Terraform) |
 | `AGENT_OBSERVABILITY_ENABLED` | Set to `true` to activate ADOT-based tracing (injected by Terraform) |
 
@@ -289,7 +289,7 @@ Standard container stdout/stderr logs are available in CloudWatch under:
 - **Strands agent framework** — `Agent` from `strands` with Bedrock model, MCP tools, KB tool, and memory hook.
 - **AgentCore Memory (STM)** — `ShortTermMemoryHook` saves and retrieves raw conversation turns within the current session via `MemoryClient`.
 - **Knowledge Base grounding** — Agent is instructed to always consult the KB before answering and to never hallucinate when the KB returns no results.
-- **MCP tool discovery** — Tools are listed dynamically at invocation time via `client.list_tools_sync()`, so adding tools to `agentrep-mcp` requires no agent code changes.
+- **MCP tool discovery** — Tools are listed dynamically at invocation time via `client.list_tools_sync()`, so adding tools to [`agentrep-mcp`](https://github.com/alvarog2491/agentrep-mcp) requires no agent code changes.
 - **SigV4 authentication** — MCP client authenticates to the AgentCore Gateway using the execution role's credentials.
 - **Non-root container user** — Dockerfile creates and runs as `bedrock_agentcore` (UID 1000).
 - **OpenTelemetry** — `aws-opentelemetry-distro` + `AGENT_OBSERVABILITY_ENABLED=true` for distributed tracing via X-Ray.
