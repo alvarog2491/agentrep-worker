@@ -1,0 +1,21 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": {
+          "tool_name": "write_file"
+        },
+        "handler": {
+          "type": "agent",
+          "prompt": "A file was just written: $ARGUMENTS. Read the changed file and README.md. This is an MCP server deployed on Amazon Bedrock AgentCore Runtime via Terraform. Check whether the README is still accurate by verifying: (1) Project Structure — does it reflect the actual files and folders on disk? (2) Tools table — does it match the tools currently registered in mcp_server.py? (3) Environment Variables — do they match what is defined in mcp_server.py and the Dockerfile? (4) Terraform deployment steps — are they consistent with the terraform/ directory? (5) AgentCore Best Practices — do they reflect the actual Dockerfile and mcp_server.py implementation? (6) Observability — does it match the Dockerfile CMD and pyproject.toml dependencies? Report exactly what is outdated and needs fixing, without making any changes."
+        }
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}

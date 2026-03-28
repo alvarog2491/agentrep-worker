@@ -1,0 +1,23 @@
+
+[tool.poetry]
+name = "worker"
+version = "0.1.0"
+description = ""
+authors = []
+packages = [{ include = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+bedrock-agentcore = ">=1.0.3"
+mcp = ">=1.19.0"
+requests = ">=2.32.5"
+strands-agents = ">=1.13.0"
+strands-agents-tools = ">=0.2.16"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.0.0"
+pytest-asyncio = ">=0.21.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
