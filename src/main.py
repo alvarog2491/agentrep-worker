@@ -1,5 +1,7 @@
 import os
 import boto3
+from opentelemetry import baggage
+from opentelemetry import context as otel_context
 from strands import Agent, tool
 from strands.hooks import AgentInitializedEvent, HookProvider, MessageAddedEvent
 from bedrock_agentcore import BedrockAgentCoreApp
@@ -49,6 +51,20 @@ def search_knowledge_base(query: str) -> str:
     )
 
 
+def _extract_text(content) -> str:
+    """Extract plain text from a Strands message content value."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        texts = [
+            block["text"]
+            for block in content
+            if isinstance(block, dict) and block.get("type") == "text" and block.get("text")
+        ]
+        return " ".join(texts)
+    return ""
+
+
 class ShortTermMemoryHook(HookProvider):
     """Loads and saves conversation turns for the current session only."""
 
@@ -79,12 +95,19 @@ class ShortTermMemoryHook(HookProvider):
             return
         session_id = event.agent.state.get("session_id") or "default"
         msg = event.agent.messages[-1]
-        log.info("Saving message to memory", extra={"session_id": session_id, "role": msg["role"]})
+        role = msg.get("role")
+        # Only persist user and assistant text — skip tool use / tool result messages
+        if role not in ("user", "assistant"):
+            return
+        text = _extract_text(msg.get("content", ""))
+        if not text.strip():
+            return
+        log.info("Saving message to memory", extra={"session_id": session_id, "role": role})
         memory_client.create_event(
             memory_id=MEMORY_ID,
             actor_id="user",
             session_id=session_id,
-            messages=[(str(msg["content"]), msg["role"])],
+            messages=[(text, role)],
         )
 
     def register_hooks(self, registry):
@@ -97,6 +120,9 @@ async def invoke(payload, context):
     session_id = getattr(context, "session_id", "default")
     prompt = payload.get("prompt")
     log.info("Invocation received", extra={"session_id": session_id, "prompt": prompt})
+
+    ctx = baggage.set_baggage("session.id", session_id)
+    context_token = otel_context.attach(ctx)
 
     with get_mcp_client() as client:
         tools = client.list_tools_sync()
@@ -130,6 +156,7 @@ async def invoke(payload, context):
             if "data" in event and isinstance(event["data"], str):
                 yield event["data"]
 
+    otel_context.detach(context_token)
     log.info("Invocation complete", extra={"session_id": session_id})
 
 

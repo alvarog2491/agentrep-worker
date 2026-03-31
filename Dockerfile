@@ -14,7 +14,7 @@ COPY pyproject.toml pyproject.toml
 # Install from requirements file
 RUN uv pip install -r pyproject.toml
 
-RUN uv pip install aws-opentelemetry-distro==0.12.2
+RUN uv pip install aws-opentelemetry-distro==0.12.2 'strands-agents[otel]'
 
 # Signal that this is running in Docker for host binding logic
 ENV DOCKER_CONTAINER=1
