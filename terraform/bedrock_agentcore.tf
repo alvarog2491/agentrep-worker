@@ -233,63 +233,6 @@ resource "aws_iam_role_policy" "agentcore_runtime_execution_role_policy" {
 }
 
 ################################################################################
-# CloudWatch Log Group – application-level log delivery
-################################################################################
-
-resource "aws_cloudwatch_log_group" "agentcore_app_logs" {
-  name              = "/aws/bedrock-agentcore/runtimes/${var.app_name}/app-logs"
-  retention_in_days = 30
-}
-
-# Resource-based policy: allow the log delivery service to write to this group
-resource "aws_cloudwatch_log_resource_policy" "agentcore_log_delivery" {
-  policy_name = "${var.app_name}-agentcore-log-delivery"
-  policy_document = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Sid       = "AllowLogDelivery"
-      Effect    = "Allow"
-      Principal = { Service = "delivery.logs.amazonaws.com" }
-      Action    = ["logs:CreateLogStream", "logs:PutLogEvents"]
-      Resource  = "${aws_cloudwatch_log_group.agentcore_app_logs.arn}:*"
-      Condition = {
-        StringEquals = {
-          "aws:SourceAccount" = data.aws_caller_identity.current.account_id
-        }
-        ArnLike = {
-          "aws:SourceArn" = "arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:delivery-source:*"
-        }
-      }
-    }]
-  })
-}
-
-################################################################################
-# Log delivery: AgentCore Runtime → CloudWatch Logs (APPLICATION_LOGS)
-################################################################################
-
-resource "aws_cloudwatch_log_delivery_destination" "agentcore_cw" {
-  name = "${var.app_name}-agentcore-runtime-cw"
-
-  delivery_destination_configuration {
-    destination_resource_arn = aws_cloudwatch_log_group.agentcore_app_logs.arn
-  }
-
-  depends_on = [aws_cloudwatch_log_resource_policy.agentcore_log_delivery]
-}
-
-resource "aws_cloudwatch_log_delivery_source" "agentcore_runtime" {
-  name         = "${var.app_name}-agentcore-runtime"
-  log_type     = "APPLICATION_LOGS"
-  resource_arn = aws_bedrockagentcore_agent_runtime.agentcore_runtime.agent_runtime_arn
-}
-
-resource "aws_cloudwatch_log_delivery" "agentcore_runtime" {
-  delivery_source_name     = aws_cloudwatch_log_delivery_source.agentcore_runtime.name
-  delivery_destination_arn = aws_cloudwatch_log_delivery_destination.agentcore_cw.arn
-}
-
-################################################################################
 # AgentCore Memory (Short-Term)
 ################################################################################
 resource "aws_bedrockagentcore_memory" "agentcore_memory" {
@@ -320,9 +263,10 @@ resource "aws_bedrockagentcore_agent_runtime" "agentcore_runtime" {
   environment_variables = {
     AWS_REGION                  = data.aws_region.current.region
     BEDROCK_AGENTCORE_MEMORY_ID = aws_bedrockagentcore_memory.agentcore_memory.id
-    MCP_SERVER_URL              = var.mcp_runtime_url
+    MCP_RUNTIME_ARN             = var.mcp_runtime_arn
     KNOWLEDGE_BASE_ID           = var.knowledge_base_id
     AGENT_OBSERVABILITY_ENABLED = "true"
+    OTEL_RESOURCE_ATTRIBUTES    = "service.name=worker_Agent"
   }
 }
 
@@ -330,12 +274,6 @@ resource "aws_bedrockagentcore_agent_runtime" "agentcore_runtime" {
 # AgentCore Runtime Endpoints
 ################################################################################
 
-# DEV – always tracks the latest deployed version; updated on every apply.
-resource "aws_bedrockagentcore_agent_runtime_endpoint" "dev_endpoint" {
-  name                  = "DEV"
-  agent_runtime_id      = aws_bedrockagentcore_agent_runtime.agentcore_runtime.agent_runtime_id
-  agent_runtime_version = aws_bedrockagentcore_agent_runtime.agentcore_runtime.agent_runtime_version
-}
 
 # PROD – pinned to a specific version; update agent_runtime_version in
 # terraform.tfvars to promote a new version to production.
