@@ -8,7 +8,7 @@ agent_runtime_version = "1"
 
 # MCP server connection
 # Fill in with the invocation URL from your agentrep-mcp deployment
-mcp_runtime_url = "https://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn%3Aaws%3Abedrock-agentcore%3Aus-east-1%3A026898548947%3Aruntime%2Fmcp_serverless_runtime-DeOeqTBNUu/invocations"
+mcp_runtime_arn = "arn:aws:bedrock-agentcore:us-east-1:026898548947:runtime/mcp_serverless_runtime-tn9mTBG5GR"
 
 # Bedrock Knowledge Base ID (leave empty to run without knowledge base)
 knowledge_base_id = "NKXBV35WPS"

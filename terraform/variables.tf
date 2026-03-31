@@ -10,8 +10,8 @@ variable "agent_runtime_version" {
   default     = "1"
 }
 
-variable "mcp_runtime_url" {
-  description = "Invocation URL of the mcp_serverless_runtime (e.g. https://bedrock-agentcore.<region>.amazonaws.com/runtimes/<url-encoded-arn>/invocations)"
+variable "mcp_runtime_arn" {
+  description = "ARN of the agentrep-mcp AgentCore Runtime (e.g. arn:aws:bedrock-agentcore:<region>:<account>:runtime/<runtime-id>)"
   type        = string
 }
 

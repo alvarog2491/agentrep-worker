@@ -36,7 +36,7 @@ terraform apply     # builds Docker image, pushes to ECR, deploys AgentCore Runt
 terraform destroy
 ```
 
-Set `mcp_runtime_url` in [terraform/terraform.tfvars](terraform/terraform.tfvars) to the invocation URL of the deployed `agentrep-mcp` runtime before first deploy.
+Set `mcp_runtime_arn` in [terraform/terraform.tfvars](terraform/terraform.tfvars) to the ARN of the deployed `agentrep-mcp` runtime before first deploy (e.g. `arn:aws:bedrock-agentcore:us-east-1:<account>:runtime/<runtime-id>`).
 
 Terraform detects code changes via a SHA256 hash of all files under `src/`. Running `terraform apply` after any `src/` change automatically rebuilds and redeploys the container.
 
@@ -68,7 +68,7 @@ This is a **Strands agent** deployed as an **Amazon Bedrock AgentCore Runtime** 
 |---|---|
 | `AWS_REGION` | AWS region (default: `us-east-1`) |
 | `BEDROCK_AGENTCORE_MEMORY_ID` | AgentCore Memory resource ID (injected by Terraform) |
-| `MCP_SERVER_URL` | Invocation URL of the `agentrep-mcp` AgentCore Runtime (injected by Terraform) |
+| `MCP_RUNTIME_ARN` | ARN of the `agentrep-mcp` AgentCore Runtime (injected by Terraform) |
 
 ## README Hook
 

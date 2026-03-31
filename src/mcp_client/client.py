@@ -1,4 +1,6 @@
 import os
+from urllib.parse import quote
+
 import boto3
 import httpx
 from botocore.auth import SigV4Auth
@@ -41,9 +43,11 @@ class _SigV4Auth(httpx.Auth):
 def get_mcp_client() -> MCPClient:
     """
     Returns an MCP Client authenticated via SigV4, using the runtime execution role.
-    Requires env var: MCP_SERVER_URL
+    Requires env var: MCP_RUNTIME_ARN (e.g. arn:aws:bedrock-agentcore:<region>:<account>:runtime/<id>)
     """
-    server_url = os.environ["MCP_SERVER_URL"]
+    runtime_arn = os.environ["MCP_RUNTIME_ARN"]
+    encoded_arn = quote(runtime_arn, safe="")
+    server_url = f"https://bedrock-agentcore.{REGION}.amazonaws.com/runtimes/{encoded_arn}/invocations"
     auth = _SigV4Auth(SERVICE, REGION)
     return MCPClient(lambda: streamable_http_client(
         server_url,
